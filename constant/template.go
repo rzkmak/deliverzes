@@ -14,4 +14,7 @@ const (
 
     SubscribeParameterRequired = "subscribe need subscribe_id to used, example /subscribe tcp-123-ack"
     UnsubscribeParameterRequired = "unsubscribe need subscribe_id to used, example /subscribe tcp-123-ack"
+
+    SubscribeIdNotFound = "subscribe id %v not found"
+    SubscribeIdFailed = "subscribe id %v failed, internal server error"
 )
