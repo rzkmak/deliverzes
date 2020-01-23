@@ -8,6 +8,7 @@ import (
     "github.com/aeidelos/deliverzes/constant"
     tb "github.com/demget/telebot"
     "github.com/dgraph-io/badger"
+    "io/ioutil"
     "log"
     "net/http"
     "strconv"
@@ -268,6 +269,10 @@ func (t *Bot) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
             if subscribers == "" {
                 return nil
             }
+            body, err := ioutil.ReadAll(r.Body)
+            if err != nil {
+                return err
+            }
 
             arrSubscribers := strings.Split(subscribers, ",")
             for _, sub := range arrSubscribers {
@@ -277,7 +282,7 @@ func (t *Bot) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
                 }
                 t.sendToUser(&tb.User{
                     ID: user,
-                }, fmt.Sprintf("%v", r.Body))
+                }, fmt.Sprintf("%s", body))
             }
             return nil
 
