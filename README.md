@@ -1,3 +1,5 @@
+![Deliverzes Kigi](logo.svg)
+
 # Deliverzes
 
 `Deliverzes` is courier delivery message, transforming your http request to telegram bot chat.
