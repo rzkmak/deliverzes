@@ -25,12 +25,15 @@ func main() {
     if err != nil {
         log.Fatalln(err)
     }
-    b := telegram.NewBot(t, d)
+    b := telegram.NewBot(t, c, d)
     b.Run()
 
     http.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
         _, _ = writer.Write([]byte("pong"))
     })
+
+    http.HandleFunc("/create", b.GenerateSubscriberIdHandler)
+    http.HandleFunc("/send", b.SendMessageHandler)
     log.Printf("starting listen to :%v..", c.HttpPort)
     go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", c.HttpPort), nil))
 }

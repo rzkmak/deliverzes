@@ -219,7 +219,7 @@ func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request
         Status:  true,
         Message: "",
         SubId:   topics,
-        Url:     t.C.AppUri + "?hook_url=" + topics,
+        Url:     t.C.AppUri + "/send?hook_url=" + topics,
     }
     resJson, err := json.Marshal(res)
     if err != nil {

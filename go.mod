@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/demget/telebot v0.0.0-20200110183911-13d3788fe6e0
-	github.com/dgraph-io/badger v1.6.0 // indirect
+	github.com/dgraph-io/badger v1.6.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/subosito/gotenv v1.2.0
