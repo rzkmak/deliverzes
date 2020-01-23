@@ -17,4 +17,12 @@ const (
 
     SubscribeIdNotFound = "subscribe id %v not found"
     SubscribeIdFailed = "subscribe id %v failed, internal server error"
+
+    InternalServerError = "internal server error"
+
+    ProvideCorrectJson = "please provide correct json request based on docs"
+    MinimumSubscriberName int = 6
+    MinimumSubscriberNameMsg = "minimum subscriber name is 6"
+
+    BlankHookUrl = "please provide valid hook url"
 )
