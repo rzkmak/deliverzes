@@ -29,6 +29,9 @@ func (t *Bot) OnCreate() {
 }
 
 func (t *Bot) OnHelp() {
+    t.B.Handle(constant.StartCommand, func(m *tb.Message) {
+        t.send(m, constant.HelpMessage)
+    })
     t.B.Handle(constant.HelpCommand, func(m *tb.Message) {
         t.send(m, constant.HelpMessage)
     })
@@ -42,15 +45,21 @@ func (t *Bot) OnUnknown() {
 
 func (t *Bot) OnSubscribe() {
     t.B.Handle(constant.SubscribeCommand, func(m *tb.Message) {
+        if m.FromGroup() {
+            return
+        }
+        if m.FromChannel() {
+            return
+        }
         split := strings.Split(strings.TrimSpace(m.Text), " ")
         if len(split) < 2 {
             t.send(m, constant.SubscribeParameterRequired)
             return
         }
         topics := split[1]
-        err := t.D.View(func(txn *badger.Txn) error {
-            btopics := []byte(topics)
-            item, err := txn.Get(btopics)
+        err := t.D.Update(func(txn *badger.Txn) error {
+            bTopics := []byte(topics)
+            item, err := txn.Get(bTopics)
             if err != nil {
                 return err
             }
@@ -58,11 +67,12 @@ func (t *Bot) OnSubscribe() {
                 sender := strconv.Itoa(m.Sender.ID)
                 subscribers := string(val)
                 if subscribers == "" {
-                    return txn.Set(btopics, []byte(sender))
+                    return txn.Set(bTopics, []byte(sender))
                 }
                 arrSubscribers := strings.Split(subscribers, ",")
-                updSubscribers := strings.Join(append(arrSubscribers, sender), ",")
-                return txn.Set(btopics, []byte(updSubscribers))
+                remSubscriber := remove(arrSubscribers, sender)
+                updSubscribers := strings.Join(append(remSubscriber, sender), ",")
+                return txn.Set(bTopics, []byte(updSubscribers))
             }); err != nil {
                 return err
             }
@@ -75,33 +85,35 @@ func (t *Bot) OnSubscribe() {
         if err != nil {
             log.Println(err)
             t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
+            return
         }
+        t.send(m, constant.SubscribeIdSuccess)
     })
 }
 
 func (t *Bot) OnUnsubscribe() {
-    t.B.Handle(constant.SubscribeCommand, func(m *tb.Message) {
+    t.B.Handle(constant.UnsubscribeCommand, func(m *tb.Message) {
         split := strings.Split(strings.TrimSpace(m.Text), " ")
         if len(split) < 2 {
             t.send(m, constant.UnsubscribeCommand)
             return
         }
         topics := split[1]
-        err := t.D.View(func(txn *badger.Txn) error {
-            btopics := []byte(topics)
-            item, err := txn.Get(btopics)
+        err := t.D.Update(func(txn *badger.Txn) error {
+            bTopics := []byte(topics)
+            item, err := txn.Get(bTopics)
             if err != nil {
                 return err
             }
             if err := item.Value(func(val []byte) error {
-                sender := strconv.Itoa(m.Sender.ID)
                 subscribers := string(val)
                 if subscribers == "" {
-                    return txn.Set(btopics, []byte(sender))
+                    return nil
                 }
                 arrSubscribers := strings.Split(subscribers, ",")
                 updSubscribers := strings.Join(remove(arrSubscribers, subscribers), ",")
-                return txn.Set(btopics, []byte(updSubscribers))
+                log.Println(updSubscribers)
+                return txn.Set(bTopics, []byte(updSubscribers))
             }); err != nil {
                 return err
             }
@@ -201,7 +213,7 @@ func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request
         return
     }
     topics := body.SubName + "-" + randString()
-    if err := t.D.View(func(txn *badger.Txn) error {
+    if err := t.D.Update(func(txn *badger.Txn) error {
         return txn.Set([]byte(topics), []byte(""))
     }); err != nil {
         res := ReqSubIdResp{
