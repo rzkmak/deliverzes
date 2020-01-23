@@ -1,0 +1,13 @@
+.idea
+.vscode
+vendor
+*.test
+*.out
+*.so
+*.dll
+*.dylib
+.DS_Store
+build
+deliverzes
+.env
+main_res.go
