@@ -241,20 +241,6 @@ func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (t *Bot) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
-    decoder := json.NewDecoder(r.Body)
-    var body map[string]interface{}
-    if err := decoder.Decode(&body); err != nil {
-        res := ReqSubIdResp{
-            Status:  false,
-            Message: constant.ProvideCorrectJson,
-        }
-        resJson, err := json.Marshal(res)
-        if err != nil {
-            _, _ = w.Write([]byte(constant.InternalServerError))
-        }
-        _, _ = w.Write(resJson)
-        return
-    }
 
     if r.URL.Query().Get("hook_url") == "" {
         res := ReqSubIdResp{
@@ -291,7 +277,7 @@ func (t *Bot) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
                 }
                 t.sendToUser(&tb.User{
                     ID: user,
-                }, fmt.Sprintf("%v", body))
+                }, fmt.Sprintf("%v", r.Body))
             }
             return nil
 
