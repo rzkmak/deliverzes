@@ -14,6 +14,7 @@ const (
 
     UnknownMessageReply = "%v is unknown command, please see /help to view available one"
     SubscribeIdSuccess  = "%v subscribe id success"
+    UnsubscribeIdSuccess  = "%v unsubscribe id success"
 
     SubscribeParameterRequired   = "subscribe need subscribe_id to used, example /subscribe tcp-123-ack"
     UnsubscribeParameterRequired = "unsubscribe need subscribe_id to used, example /subscribe tcp-123-ack"

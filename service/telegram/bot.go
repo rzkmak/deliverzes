@@ -87,7 +87,7 @@ func (t *Bot) OnSubscribe() {
             t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
             return
         }
-        t.send(m, constant.SubscribeIdSuccess)
+        t.send(m, fmt.Sprintf(constant.SubscribeIdSuccess, topics))
     })
 }
 
@@ -112,7 +112,6 @@ func (t *Bot) OnUnsubscribe() {
                 }
                 arrSubscribers := strings.Split(subscribers, ",")
                 updSubscribers := strings.Join(remove(arrSubscribers, subscribers), ",")
-                log.Println(updSubscribers)
                 return txn.Set(bTopics, []byte(updSubscribers))
             }); err != nil {
                 return err
@@ -126,8 +125,9 @@ func (t *Bot) OnUnsubscribe() {
         if err != nil {
             log.Println(err)
             t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
+            return
         }
-
+        t.send(m, fmt.Sprintf(constant.UnsubscribeIdSuccess, topics))
     })
 }
 
