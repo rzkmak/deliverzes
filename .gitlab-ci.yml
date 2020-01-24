@@ -1,0 +1,17 @@
+image: docker:latest
+services:
+  - docker:dind
+
+variables:
+  REGISTRY_URL: registry.gitlab.com
+  REGISTRY_NAME: aeidelos/${CI_PROJECT_NAME}
+  CONTAINER_IMAGE: ${REGISTRY_NAME}:${CI_COMMIT_SHORT_SHA}
+
+build:
+  stage: build
+  script:
+    - docker login ${REGISTRY_URL} -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+    - docker build -t ${REGISTRY_URL}/${CONTAINER_IMAGE} .
+    - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${CONTAINER_IMAGE}
+    - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${REGISTRY_URL}/${REGISTRY_NAME}:latest
+    - docker push ${REGISTRY_URL}/${CONTAINER_IMAGE}
