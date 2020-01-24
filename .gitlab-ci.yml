@@ -24,6 +24,6 @@ release_stable:
   script:
     - docker login ${REGISTRY_URL} -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
     - docker build -t ${REGISTRY_URL}/${REGISTRY_NAME}:latest .
-    - docker tag ${REGISTRY_URL}/$${REGISTRY_NAME}:latest {REGISTRY_NAME}:latest
+    - docker tag ${REGISTRY_URL}/${REGISTRY_NAME}:latest ${REGISTRY_NAME}:latest
     - docker push ${REGISTRY_URL}/${REGISTRY_NAME}:latest
   when: manual
