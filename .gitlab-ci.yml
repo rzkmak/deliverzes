@@ -17,15 +17,13 @@ build:
     - docker login ${REGISTRY_URL} -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
     - docker build -t ${REGISTRY_URL}/${CONTAINER_IMAGE} .
     - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${CONTAINER_IMAGE}
-    - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${REGISTRY_URL}/${REGISTRY_NAME}:latest
     - docker push ${REGISTRY_URL}/${CONTAINER_IMAGE}
 
 release_stable:
   stage: release
   script:
     - docker login ${REGISTRY_URL} -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-    - docker build -t ${REGISTRY_URL}/${CONTAINER_IMAGE} .
-    - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${CONTAINER_IMAGE}
-    - docker tag ${REGISTRY_URL}/${CONTAINER_IMAGE} ${REGISTRY_URL}/${REGISTRY_NAME}:stable
-    - docker push ${REGISTRY_URL}/${CONTAINER_IMAGE}
+    - docker build -t ${REGISTRY_URL}/${REGISTRY_NAME}:latest .
+    - docker tag ${REGISTRY_URL}/$${REGISTRY_NAME}:latest {REGISTRY_NAME}:latest
+    - docker push ${REGISTRY_URL}/${REGISTRY_NAME}:latest
   when: manual
