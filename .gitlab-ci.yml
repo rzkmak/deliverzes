@@ -7,6 +7,7 @@ stages:
   - release
 
 variables:
+  CI_PROJECT_NAME: deliverzes
   REGISTRY_URL: registry.gitlab.com
   REGISTRY_NAME: aeidelos/${CI_PROJECT_NAME}
   CONTAINER_IMAGE: ${REGISTRY_NAME}:${CI_COMMIT_SHORT_SHA}
