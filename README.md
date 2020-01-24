@@ -29,10 +29,8 @@ To run this program, you will need
 
 ## Deployment
 
-`to be added`
+Create directory for Mounted storage
+`mkdir /tmp/badger`
 
-## Configuration
-
-### Environment Variable
-
-`to be added`
+Run the latest Image
+`docker run -v /tmp/badger:/tmp/badger --env APP_URI=0.0.0.0 --env HTTP_PORT=8000 --env TELEGRAM_TOKEN=YOUR_TELEGRAM_TOKEN --env TELEGRAM_POLLING_INTERVAL=1 --env DB_PATH=/tmp/badger -p 8000:8000 registry.gitlab.com/aeidelos/deliverzes:latest`
