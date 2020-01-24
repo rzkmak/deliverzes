@@ -34,6 +34,7 @@ func main() {
 
     http.HandleFunc("/create", b.GenerateSubscriberIdHandler)
     http.HandleFunc("/send", b.SendMessageHandler)
+    http.Handle("/", http.Handler(http.FileServer(http.Dir("./web/"))))
     log.Printf("starting listen to :%v..", c.HttpPort)
     go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", c.HttpPort), nil))
 }

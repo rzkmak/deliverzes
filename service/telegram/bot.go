@@ -1,5 +1,6 @@
 package telegram
 
+import "C"
 import (
     "crypto/rand"
     "encoding/json"
@@ -232,7 +233,7 @@ func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request
         Status:  true,
         Message: "",
         SubId:   topics,
-        Url:     t.C.AppUri + "/send?hook_url=" + topics,
+        Url:     fmt.Sprintf("http://%v:%v/send?hook_url=%v" ,t.C.AppUri, t.C.HttpPort, topics),
     }
     resJson, err := json.Marshal(res)
     if err != nil {
