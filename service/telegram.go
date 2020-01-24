@@ -1,4 +1,4 @@
-package telegram
+package service
 
 import "C"
 import (
@@ -16,21 +16,21 @@ import (
     "strings"
 )
 
-type Bot struct {
+type Telegram struct {
     B *tb.Bot
     C *config.Config
     D *badger.DB
 }
 
-func NewBot(b *tb.Bot, c *config.Config, d *badger.DB) *Bot {
-    return &Bot{B: b, C: c, D: d}
+func NewBot(b *tb.Bot, c *config.Config, d *badger.DB) *Telegram {
+    return &Telegram{B: b, C: c, D: d}
 }
 
-func (t *Bot) OnCreate() {
+func (t *Telegram) OnCreate() {
     log.Println("starting telegram bot..")
 }
 
-func (t *Bot) OnHelp() {
+func (t *Telegram) OnHelp() {
     t.B.Handle(constant.StartCommand, func(m *tb.Message) {
         t.send(m, constant.HelpMessage)
     })
@@ -39,13 +39,13 @@ func (t *Bot) OnHelp() {
     })
 }
 
-func (t *Bot) OnUnknown() {
+func (t *Telegram) OnUnknown() {
     t.B.Handle(tb.OnText, func(m *tb.Message) {
         t.send(m, fmt.Sprintf(constant.UnknownMessageReply, m.Text))
     })
 }
 
-func (t *Bot) OnSubscribe() {
+func (t *Telegram) OnSubscribe() {
     t.B.Handle(constant.SubscribeCommand, func(m *tb.Message) {
         if m.FromGroup() {
             return
@@ -93,7 +93,7 @@ func (t *Bot) OnSubscribe() {
     })
 }
 
-func (t *Bot) OnUnsubscribe() {
+func (t *Telegram) OnUnsubscribe() {
     t.B.Handle(constant.UnsubscribeCommand, func(m *tb.Message) {
         split := strings.Split(strings.TrimSpace(m.Text), " ")
         if len(split) < 2 {
@@ -133,14 +133,14 @@ func (t *Bot) OnUnsubscribe() {
     })
 }
 
-func (t *Bot) send(m *tb.Message, message string) {
+func (t *Telegram) send(m *tb.Message, message string) {
     m, err := t.B.Send(m.Sender, message)
     if err != nil {
         log.Println(err)
     }
 }
 
-func (t *Bot) sendToUser(m *tb.User, message string) {
+func (t *Telegram) sendToUser(m *tb.User, message string) {
     _, err := t.B.Send(m, message)
     if err != nil {
         log.Println(err)
@@ -156,7 +156,7 @@ func remove(l []string, item string) []string {
     return l
 }
 
-func (t *Bot) Run() {
+func (t *Telegram) Run() {
     t.OnCreate()
     t.OnHelp()
     t.OnSubscribe()
@@ -186,7 +186,7 @@ type (
     }
 )
 
-func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request) {
+func (t *Telegram) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request) {
     decoder := json.NewDecoder(r.Body)
     var body ReqSubIdParam
     if err := decoder.Decode(&body); err != nil {
@@ -242,7 +242,7 @@ func (t *Bot) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Request
     _, _ = w.Write(resJson)
 }
 
-func (t *Bot) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
+func (t *Telegram) SendMessageHandler(w http.ResponseWriter, r *http.Request) {
 
     if r.URL.Query().Get("hook_url") == "" {
         res := ReqSubIdResp{

@@ -3,7 +3,7 @@ package main
 import (
     "fmt"
     "github.com/aeidelos/deliverzes/config"
-    "github.com/aeidelos/deliverzes/service/telegram"
+    "github.com/aeidelos/deliverzes/service"
     tb "github.com/demget/telebot"
     "github.com/dgraph-io/badger"
     "log"
@@ -25,7 +25,7 @@ func main() {
     if err != nil {
         log.Fatalln(err)
     }
-    b := telegram.NewBot(t, c, d)
+    b := service.NewBot(t, c, d)
     b.Run()
 
     http.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
