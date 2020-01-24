@@ -3,7 +3,7 @@ WORKDIR /go/src/aeidelos/deliverzes
 COPY . .
 RUN GO111MODULE=on go mod download
 RUN GO111MODULE=on go mod verify
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o deliverzes main.go
+RUN GO111MODULE=on go build .
 
 FROM alpine:latest AS deployment
 RUN apk --no-cache add ca-certificates
