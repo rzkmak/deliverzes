@@ -4,6 +4,8 @@
 
 `Deliverzes` is courier delivery message, transforming your http request to telegram bot chat.
 
+Pipeline: https://gitlab.com/aeidelos/deliverzes/pipelines
+
 ## Overview
 
 ## Prerequisite
