@@ -4,6 +4,7 @@ import "C"
 import (
     "crypto/rand"
     "encoding/json"
+    "errors"
     "fmt"
     "github.com/aeidelos/deliverzes/config"
     "github.com/aeidelos/deliverzes/constant"
@@ -80,10 +81,38 @@ func (t *Telegram) OnSubscribe() {
             }
             return nil
         })
-        if err == badger.ErrKeyNotFound {
+        if errors.Is(err, badger.ErrKeyNotFound) {
             t.send(m, fmt.Sprintf(constant.SubscribeIdNotFound, topics))
             return
         }
+        if err != nil {
+            log.Println(err)
+            t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
+            return
+        }
+        err = t.D.Update(func(txn *badger.Txn) error {
+            bSender := []byte(strconv.Itoa(m.Sender.ID))
+            item, err := txn.Get(bSender)
+            if errors.Is(err, badger.ErrKeyNotFound) {
+                return txn.Set(bSender, []byte(topics))
+            }
+            if err != nil {
+                return err
+            }
+            if err := item.Value(func(val []byte) error {
+                subscribed := string(val)
+                if subscribed == "" {
+                    return txn.Set(bSender, []byte(topics))
+                }
+                arrSubscribed := strings.Split(subscribed, ",")
+                remSubscribed := remove(arrSubscribed, topics)
+                updSubscribed := strings.Join(append(remSubscribed, topics), ",")
+                return txn.Set(bSender, []byte(updSubscribed))
+            }); err != nil {
+                return err
+            }
+            return nil
+        })
         if err != nil {
             log.Println(err)
             t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
@@ -101,6 +130,11 @@ func (t *Telegram) OnUnsubscribe() {
             return
         }
         topics := split[1]
+        if topics == "all" {
+            t.OnUnsubscribeAll(strconv.Itoa(m.Sender.ID))
+            t.send(m, fmt.Sprintf(constant.UnsubscribeIdSuccess, "all"))
+            return
+        }
         err := t.D.Update(func(txn *badger.Txn) error {
             bTopics := []byte(topics)
             item, err := txn.Get(bTopics)
@@ -129,7 +163,73 @@ func (t *Telegram) OnUnsubscribe() {
             t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
             return
         }
+        err = t.D.Update(func(txn *badger.Txn) error {
+            bSender := []byte(strconv.Itoa(m.Sender.ID))
+            item, err := txn.Get(bSender)
+            if errors.Is(err, badger.ErrKeyNotFound) {
+                return err
+            }
+            if err := item.Value(func(val []byte) error {
+                subscribed := string(val)
+                if subscribed == "" {
+                    return nil
+                }
+                arrSubscribed := strings.Split(subscribed, ",")
+                updSubscribed := strings.Join(remove(arrSubscribed, topics), ",")
+                return txn.Set(bSender, []byte(updSubscribed))
+            }); err != nil {
+                return err
+            }
+            return nil
+        })
+        if err != nil {
+            log.Println(err)
+            t.send(m, fmt.Sprintf(constant.SubscribeIdFailed, topics))
+            return
+        }
         t.send(m, fmt.Sprintf(constant.UnsubscribeIdSuccess, topics))
+    })
+}
+
+func (t *Telegram) OnUnsubscribeAll(sender string) {
+    _ = t.D.Update(func(txn *badger.Txn) error {
+        bSender := []byte(sender)
+        item, err := txn.Get(bSender)
+        if errors.Is(err, badger.ErrKeyNotFound) {
+            return txn.Delete(bSender)
+        }
+        if err := item.Value(func(val []byte) error {
+            subscribedTopics := strings.Split(string(val), ",")
+            for _, topics := range subscribedTopics {
+                err = t.D.Update(func(txn *badger.Txn) error {
+                    bTopics := []byte(topics)
+                    item, err := txn.Get(bTopics)
+                    if err != nil {
+                        log.Println(err)
+                        return nil
+                    }
+                    if err := item.Value(func(val []byte) error {
+                        subscribers := string(val)
+                        if subscribers == "" {
+                            return nil
+                        }
+                        arrSubscribers := strings.Split(subscribers, ",")
+                        updSubscribers := strings.Join(remove(arrSubscribers, subscribers), ",")
+                        return txn.Set(bTopics, []byte(updSubscribers))
+                    }); errors.Is(err, badger.ErrKeyNotFound) {
+                        log.Println(err)
+                        return nil
+                    }
+                    log.Println(err)
+                    return nil
+                })
+            }
+            return nil
+        }); err != nil {
+            log.Println(err)
+            return err
+        }
+        return txn.Delete(bSender)
     })
 }
 
@@ -172,8 +272,8 @@ type (
     ReqSubIdResp struct {
         Message string `json:"message"`
         Status  bool   `json:"status"`
-        SubId   string `subscriber_id`
-        Url     string `webhook_url`
+        SubId   string `json:"subscriber_id"`
+        Url     string `json:"webhook_url"`
     }
     ReqHookParam struct {
         Title  string                 `json:"title"`
@@ -233,7 +333,7 @@ func (t *Telegram) GenerateSubscriberIdHandler(w http.ResponseWriter, r *http.Re
         Status:  true,
         Message: "",
         SubId:   topics,
-        Url:     fmt.Sprintf("http://%v:%v/send?hook_url=%v" ,t.C.AppUri, t.C.HttpPort, topics),
+        Url:     fmt.Sprintf("http://%v:%v/send?hook_url=%v", t.C.AppUri, t.C.HttpPort, topics),
     }
     resJson, err := json.Marshal(res)
     if err != nil {

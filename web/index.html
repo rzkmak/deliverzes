@@ -145,8 +145,8 @@
                         window.alert(res.message)
                         return
                     }
-                    this.subscriptionChannel = res.SubId;
-                    this.subscriptionUrl = res.Url;
+                    this.subscriptionChannel = res.subscriber_id;
+                    this.subscriptionUrl = res.webhook_url;
                     this.isGenerated = true;
                 } catch (e){
                     console.log(e);
